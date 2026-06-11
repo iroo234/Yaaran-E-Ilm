@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Yaaran E Ilm"
+version = "1.0.0"
+id = "artifacts/yaaran-e-ilm"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23528
+
+[services.development]
+run = "pnpm --filter @workspace/yaaran-e-ilm run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/yaaran-e-ilm", "run", "build" ]
+publicDir = "artifacts/yaaran-e-ilm/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23528"
+BASE_PATH = "/"

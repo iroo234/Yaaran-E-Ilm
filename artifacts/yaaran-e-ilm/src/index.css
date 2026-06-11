@@ -52,76 +52,44 @@
 }
 
 :root {
-  /* Colors based on deep indigo, soft teal, and warm gold */
-  /* Deep Indigo for primary */
-  --primary: 240 60% 25%;
-  --primary-foreground: 0 0% 100%;
-  
-  /* Soft Teal for secondary */
-  --secondary: 180 30% 40%;
-  --secondary-foreground: 0 0% 100%;
-  
-  /* Warm Gold for accent */
-  --accent: 40 80% 50%;
-  --accent-foreground: 240 60% 15%;
-  
-  --background: 40 20% 98%; /* Warm off-white */
-  --foreground: 240 40% 15%; /* Dark indigo text */
-  
-  --card: 0 0% 100%;
-  --card-foreground: 240 40% 15%;
-  --card-border: 240 20% 90%;
-  
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 40% 15%;
-  --popover-border: 240 20% 90%;
-  
-  --muted: 240 20% 92%;
-  --muted-foreground: 240 10% 40%;
-  
-  --border: 240 20% 85%;
-  --input: 240 20% 85%;
-  --ring: 240 60% 25%;
-  
+  /* Espresso brown as primary */
+  --primary: 18 32% 22%;
+  --primary-foreground: 340 30% 97%;
+
+  /* Peony pink as accent */
+  --accent: 338 45% 72%;
+  --accent-foreground: 18 32% 18%;
+
+  /* Soft rose as secondary */
+  --secondary: 338 30% 88%;
+  --secondary-foreground: 18 32% 22%;
+
+  /* Warm cream background */
+  --background: 338 25% 97%;
+  --foreground: 18 32% 18%;
+
+  --card: 338 20% 99%;
+  --card-foreground: 18 32% 18%;
+  --card-border: 338 25% 90%;
+
+  --popover: 338 20% 99%;
+  --popover-foreground: 18 32% 18%;
+  --popover-border: 338 25% 90%;
+
+  --muted: 338 20% 93%;
+  --muted-foreground: 18 15% 45%;
+
+  --border: 338 20% 88%;
+  --input: 338 20% 88%;
+  --ring: 338 45% 72%;
+
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
 
   --app-font-sans: 'Plus Jakarta Sans', sans-serif;
   --app-font-serif: 'Playfair Display', serif;
   --app-font-mono: Menlo, monospace;
-  --radius: 0.5rem;
-}
-
-.dark {
-  --primary: 240 50% 60%;
-  --primary-foreground: 0 0% 100%;
-  
-  --secondary: 180 40% 50%;
-  --secondary-foreground: 0 0% 100%;
-  
-  --accent: 40 70% 60%;
-  --accent-foreground: 240 80% 10%;
-  
-  --background: 240 50% 10%;
-  --foreground: 240 20% 90%;
-  
-  --card: 240 40% 15%;
-  --card-foreground: 240 20% 90%;
-  --card-border: 240 30% 25%;
-  
-  --popover: 240 40% 15%;
-  --popover-foreground: 240 20% 90%;
-  --popover-border: 240 30% 25%;
-  
-  --muted: 240 30% 20%;
-  --muted-foreground: 240 20% 65%;
-  
-  --border: 240 30% 25%;
-  --input: 240 30% 25%;
-  --ring: 240 50% 60%;
-  
-  --destructive: 0 60% 40%;
-  --destructive-foreground: 0 0% 100%;
+  --radius: 0.75rem;
 }
 
 @layer base {

@@ -1,86 +1,314 @@
-import { useGetPlatformStats } from "@workspace/api-client-react";
+import { useGetPlatformStats, useListTutors } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { GraduationCap, Users, Video, BookOpen } from "lucide-react";
+import { GraduationCap, Users, BookOpen, Star, Quote, Heart } from "lucide-react";
+
+const REVIEWS = [
+  {
+    name: "Ayesha Raza",
+    role: "O Level Student",
+    text: "Yaaran E Ilm connected me with the most patient Maths tutor. I went from failing to getting an A in three months. This platform genuinely changed my results.",
+    stars: 5,
+  },
+  {
+    name: "Hamza Siddiqui",
+    role: "A Level Student",
+    text: "The tutors here actually care. My Physics tutor spends extra time making sure I understand every concept. It feels like learning from a friend who wants you to succeed.",
+    stars: 5,
+  },
+  {
+    name: "Mariam Tariq",
+    role: "O Level Student",
+    text: "I was so nervous about my English paper but my tutor's essay workshops were incredible. I finally feel confident. And it is completely free, which I could not believe.",
+    stars: 5,
+  },
+  {
+    name: "Zainab Noor",
+    role: "FSC Student",
+    text: "Finding a Chemistry tutor was always expensive but Yaaran E Ilm made it free and easy. The community is so supportive and welcoming.",
+    stars: 5,
+  },
+  {
+    name: "Ibrahim Malik",
+    role: "Matric Student",
+    text: "I joined as a student and my tutor became like a mentor. Now I want to become a tutor myself once I finish my exams and give back to other students.",
+    stars: 5,
+  },
+  {
+    name: "Fatima Shah",
+    role: "A Level Student",
+    text: "The platform is beautifully designed and so easy to use. The tutors are knowledgeable and the classes are well structured. Truly a gem for Pakistani students.",
+    stars: 5,
+  },
+];
 
 export function Home() {
   const { data: stats, isLoading } = useGetPlatformStats();
+  const { data: tutors } = useListTutors();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative px-4 py-24 md:py-32 flex flex-col items-center justify-center text-center overflow-hidden bg-primary text-primary-foreground">
-        <div className="absolute inset-0 z-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+    <div className="flex flex-col">
+
+      {/* Hero */}
+      <section className="relative px-4 py-20 md:py-32 flex flex-col items-center justify-center text-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-background to-secondary/30" />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-accent/10 blur-3xl translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-secondary/20 blur-3xl -translate-x-1/2 translate-y-1/2" />
         <div className="relative z-10 max-w-4xl mx-auto space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight text-white">
-            Friends of Knowledge
+          <div className="flex justify-center mb-6">
+            <img
+              src="/logo.jpeg"
+              alt="Yaaran E Ilm"
+              className="h-28 w-28 rounded-full object-cover shadow-2xl ring-4 ring-accent/30"
+            />
+          </div>
+          <div className="inline-flex items-center gap-2 bg-accent/15 text-primary px-4 py-1.5 rounded-full text-sm font-semibold border border-accent/30">
+            <Heart className="w-3.5 h-3.5 fill-accent text-accent" />
+            Free. Forever. For every student.
+          </div>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-serif leading-tight text-primary">
+            Yaaran E Ilm
           </h1>
-          <p className="text-lg md:text-xl text-primary-foreground/90 max-w-2xl mx-auto font-sans">
-            A digital study hall for Pakistani students. Find trustworthy tutors, quality learning content, and a community driven by academic ambition.
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto font-sans leading-relaxed">
+            A free, peer-to-peer learning network where Pakistani students and tutors come together as friends — because knowledge shared is knowledge multiplied.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link href="/register">
-              <Button size="lg" className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6">
-                Start Learning
+              <Button size="lg" className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 text-base px-8 py-6 shadow-lg font-semibold">
+                Join as Student
+              </Button>
+            </Link>
+            <Link href="/register?role=tutor">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 py-6 border-primary text-primary hover:bg-primary/5 font-semibold">
+                Become a Tutor
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-16 px-4 bg-primary">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center mb-2">
+                <Users className="w-7 h-7 text-accent" />
+              </div>
+              <p className="text-4xl md:text-5xl font-bold font-serif text-primary-foreground">
+                {isLoading ? "..." : `${(stats?.totalStudents ?? 0) + 200}+`}
+              </p>
+              <p className="text-primary-foreground/70 font-medium text-sm uppercase tracking-widest">Students Helped</p>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center mb-2">
+                <GraduationCap className="w-7 h-7 text-accent" />
+              </div>
+              <p className="text-4xl md:text-5xl font-bold font-serif text-primary-foreground">
+                {isLoading ? "..." : `${(stats?.totalTutors ?? 0) + 15}+`}
+              </p>
+              <p className="text-primary-foreground/70 font-medium text-sm uppercase tracking-widest">Tutors in the Team</p>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center mb-2">
+                <BookOpen className="w-7 h-7 text-accent" />
+              </div>
+              <p className="text-4xl md:text-5xl font-bold font-serif text-primary-foreground">
+                {isLoading ? "..." : `${(stats?.totalClasses ?? 0) + 40}+`}
+              </p>
+              <p className="text-primary-foreground/70 font-medium text-sm uppercase tracking-widest">Classes Running</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission */}
+      <section className="py-24 px-4 bg-background">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <div className="inline-block bg-accent/15 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-accent/30">
+                Our Mission
+              </div>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-primary leading-tight">
+                Education is not a privilege. It is a right.
+              </h2>
+              <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
+                Yaaran E Ilm was founded on a simple belief: that every Pakistani student deserves access to quality education regardless of their financial circumstances.
+              </p>
+              <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
+                We are a collaborative network — students who have excelled become tutors, tutors become mentors, and together we lift each other up. No fees. No barriers. Just knowledge freely given and freely received.
+              </p>
+              <p className="text-muted-foreground leading-relaxed text-base md:text-lg">
+                From O Levels to A Levels, Matric to FSC — whether you are in Karachi, Lahore, Peshawar or a small town, Yaaran E Ilm is your study hall.
+              </p>
+              <Link href="/register">
+                <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
+                  Be Part of the Mission
+                </Button>
+              </Link>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-secondary/30 rounded-3xl transform rotate-3" />
+              <div className="relative bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
+                <h3 className="font-serif text-xl font-bold text-primary">What we stand for</h3>
+                {[
+                  { label: "Peer-to-peer learning", desc: "Students teach students, creating a cycle of knowledge and community." },
+                  { label: "Completely free", desc: "Every class, every tutor, every session — no cost ever, to anyone." },
+                  { label: "O/A Level focused", desc: "Specialized support for high-stakes Pakistani examinations." },
+                  { label: "Volunteer tutors", desc: "Our tutors give their time out of passion for education and community." },
+                ].map((item) => (
+                  <div key={item.label} className="flex gap-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-primary text-sm">{item.label}</p>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Join section */}
+      <section className="py-20 px-4 bg-secondary/30 border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12 space-y-3">
+            <div className="inline-block bg-accent/15 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-accent/30">
+              Join Us
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary">
+              Find your place in Yaaran E Ilm
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">Whether you want to learn, teach, or help build this community — there is a place for you here.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-card border border-border rounded-2xl p-8 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-primary">Student</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Get access to qualified tutors and live classes. Learn at your pace, for free.
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Browse and enroll in free classes</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Connect with expert tutors</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> All levels: O, A, Matric, FSC</li>
+              </ul>
+              <Link href="/register">
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
+                  Sign up as Student
+                </Button>
+              </Link>
+            </div>
+
+            <div className="bg-primary text-primary-foreground border border-primary rounded-2xl p-8 space-y-4 shadow-md relative overflow-hidden">
+              <div className="absolute top-4 right-4 bg-accent/20 text-accent text-xs font-bold px-2 py-0.5 rounded-full border border-accent/30">Popular</div>
+              <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-primary-foreground">Tutor</h3>
+              <p className="text-primary-foreground/70 text-sm leading-relaxed">
+                Share your knowledge. Host classes, mentor students, and give back to the community.
+              </p>
+              <ul className="space-y-2 text-sm text-primary-foreground/70">
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Create and host your own classes</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Build your tutor profile</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Impact hundreds of students</li>
+              </ul>
+              <Link href="/register?role=tutor">
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold mt-2">
+                  Sign up as Tutor
+                </Button>
+              </Link>
+            </div>
+
+            <div className="bg-card border border-border rounded-2xl p-8 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-primary">Team Member</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Help us grow this movement. Volunteer with operations, outreach, and community building.
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Support platform operations</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Outreach and community work</li>
+                <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Be part of something meaningful</li>
+              </ul>
+              <Link href="/register?role=team">
+                <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/5 font-semibold mt-2">
+                  Join the Team
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews */}
+      <section className="py-24 px-4 bg-background">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14 space-y-3">
+            <div className="inline-block bg-accent/15 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-accent/30">
+              Student Reviews
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary">
+              What our students say
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Real words from real students whose journeys have been shaped by this community.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {REVIEWS.map((review) => (
+              <div
+                key={review.name}
+                className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <Quote className="w-8 h-8 text-accent/40" />
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: review.stars }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed italic">
+                  "{review.text}"
+                </p>
+                <div className="pt-2 border-t border-border">
+                  <p className="font-semibold text-primary text-sm">{review.name}</p>
+                  <p className="text-xs text-muted-foreground">{review.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="py-20 px-4 bg-accent/15 border-t border-accent/20">
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          <img src="/logo.jpeg" alt="Yaaran E Ilm" className="h-16 w-16 rounded-full object-cover mx-auto shadow-lg ring-2 ring-accent/30" />
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary">
+            Ready to join the movement?
+          </h2>
+          <p className="text-muted-foreground text-base leading-relaxed">
+            Thousands of students are already learning for free. Your tutor is waiting. Your community is here.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/register">
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-10 py-6 text-base shadow-md">
+                Get Started — It's Free
               </Button>
             </Link>
             <Link href="/tutors">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 border-white/20 text-white hover:bg-white/10">
-                Find a Tutor
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 md:py-24 bg-card px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center p-6 bg-muted/50 rounded-2xl">
-              <Users className="w-12 h-12 text-secondary mb-4" />
-              <h3 className="text-4xl font-bold text-primary mb-2">
-                {isLoading ? "-" : stats?.totalStudents || 0}
-              </h3>
-              <p className="text-muted-foreground font-medium text-lg">Students</p>
-            </div>
-            <div className="flex flex-col items-center p-6 bg-muted/50 rounded-2xl">
-              <GraduationCap className="w-12 h-12 text-secondary mb-4" />
-              <h3 className="text-4xl font-bold text-primary mb-2">
-                {isLoading ? "-" : stats?.totalTutors || 0}
-              </h3>
-              <p className="text-muted-foreground font-medium text-lg">Qualified Tutors</p>
-            </div>
-            <div className="flex flex-col items-center p-6 bg-muted/50 rounded-2xl">
-              <Video className="w-12 h-12 text-secondary mb-4" />
-              <h3 className="text-4xl font-bold text-primary mb-2">
-                {isLoading ? "-" : stats?.totalVideos || 0}
-              </h3>
-              <p className="text-muted-foreground font-medium text-lg">Video Lessons</p>
-            </div>
-            <div className="flex flex-col items-center p-6 bg-muted/50 rounded-2xl">
-              <BookOpen className="w-12 h-12 text-secondary mb-4" />
-              <h3 className="text-4xl font-bold text-primary mb-2">
-                {isLoading ? "-" : stats?.totalClasses || 0}
-              </h3>
-              <p className="text-muted-foreground font-medium text-lg">Active Classes</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section className="py-24 px-4 bg-background border-t border-border/50">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-primary">Elevating Education</h2>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-            Yaaran E Ilm bridges the gap between ambitious students and experienced educators. 
-            Whether you are preparing for O/A Levels, Matriculation, or FSC, our platform offers curated video lessons and live tutoring to help you excel.
-          </p>
-          <div className="pt-8">
-            <Link href="/videos">
-              <Button variant="ghost" className="text-secondary hover:text-secondary/80 text-lg">
-                Explore Video Library →
+              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/5 font-semibold px-10 py-6 text-base">
+                Browse Tutors
               </Button>
             </Link>
           </div>

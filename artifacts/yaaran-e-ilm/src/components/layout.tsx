@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, GraduationCap, LayoutDashboard, Users } from "lucide-react";
+import { LogOut, Menu, GraduationCap, LayoutDashboard, Users, ShieldCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -17,6 +17,8 @@ export function Layout({ children }: { children: ReactNode }) {
       }
     });
   };
+
+  const isAdmin = (user as any)?.isAdmin === true;
 
   const navItems = [
     { label: "Tutors", href: "/tutors", icon: <Users className="w-4 h-4 mr-2" /> },
@@ -58,6 +60,14 @@ export function Layout({ children }: { children: ReactNode }) {
                 <span className="text-sm text-muted-foreground font-medium">
                   {user.name}
                 </span>
+                {isAdmin && (
+                  <Link href="/admin">
+                    <Button variant="ghost" size="sm" className="font-medium text-accent hover:text-accent/80">
+                      <ShieldCheck className="w-4 h-4 mr-2" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <Link href="/dashboard">
                   <Button variant="ghost" size="sm" className="font-medium">
                     <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -109,6 +119,12 @@ export function Layout({ children }: { children: ReactNode }) {
                     <Link href="/dashboard" className="flex items-center text-lg font-medium text-primary">
                       <LayoutDashboard className="w-4 h-4 mr-2" />
                       Dashboard
+                    </Link>
+                  )}
+                  {isAdmin && (
+                    <Link href="/admin" className="flex items-center text-lg font-medium text-accent">
+                      <ShieldCheck className="w-4 h-4 mr-2" />
+                      Admin Panel
                     </Link>
                   )}
                 </nav>

@@ -4,7 +4,6 @@ import { db, usersTable, tutorsTable } from "@workspace/db";
 import {
   RegisterBody,
   LoginBody,
-  GetMeResponse,
 } from "@workspace/api-zod";
 import { createHash } from "crypto";
 
@@ -12,6 +11,18 @@ const router: IRouter = Router();
 
 function hashPassword(password: string): string {
   return createHash("sha256").update(password + "yaaran-e-ilm-salt").digest("hex");
+}
+
+function buildUserResponse(user: typeof usersTable.$inferSelect) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl ?? null,
+    isAdmin: user.isAdmin === 1,
+    createdAt: user.createdAt.toISOString(),
+  };
 }
 
 router.post("/auth/register", async (req, res): Promise<void> => {
@@ -43,19 +54,13 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       bio: bio ?? null,
       subject: subject ?? null,
       level: level ?? null,
+      isApproved: 0,
     });
   }
 
   (req.session as any).userId = user.id;
 
-  res.status(201).json(GetMeResponse.parse({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatarUrl: user.avatarUrl,
-    createdAt: user.createdAt.toISOString(),
-  }));
+  res.status(201).json(buildUserResponse(user));
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {
@@ -68,8 +73,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const { email, password } = parsed.data;
   const passwordHash = hashPassword(password);
 
-  const [user] = await db.select().from(usersTable)
-    .where(eq(usersTable.email, email));
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
 
   if (!user || user.passwordHash !== passwordHash) {
     res.status(401).json({ error: "Invalid email or password" });
@@ -78,14 +82,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 
   (req.session as any).userId = user.id;
 
-  res.json(GetMeResponse.parse({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatarUrl: user.avatarUrl,
-    createdAt: user.createdAt.toISOString(),
-  }));
+  res.json(buildUserResponse(user));
 });
 
 router.post("/auth/logout", async (req, res): Promise<void> => {
@@ -107,14 +104,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(GetMeResponse.parse({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatarUrl: user.avatarUrl,
-    createdAt: user.createdAt.toISOString(),
-  }));
+  res.json(buildUserResponse(user));
 });
 
 export default router;

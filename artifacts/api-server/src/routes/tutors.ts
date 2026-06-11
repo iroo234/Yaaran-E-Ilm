@@ -41,7 +41,10 @@ async function buildTutor(userId: number) {
 router.get("/tutors", async (req, res): Promise<void> => {
   const { subject, level } = req.query as { subject?: string; level?: string };
 
-  let query = db.select().from(tutorsTable).$dynamic();
+  let query = db.select().from(tutorsTable)
+    .where(eq(tutorsTable.isApproved, 1))
+    .$dynamic();
+
   if (subject) {
     query = query.where(eq(tutorsTable.subject, subject));
   }
@@ -49,7 +52,6 @@ router.get("/tutors", async (req, res): Promise<void> => {
   const tutorRows = await query;
   const tutors = await Promise.all(tutorRows.map(t => buildTutor(t.userId)));
   const filtered = tutors.filter(Boolean);
-
   const levelFiltered = level ? filtered.filter(t => t!.level === level) : filtered;
 
   res.json(ListTutorsResponse.parse(levelFiltered));
@@ -63,7 +65,7 @@ router.get("/tutors/:id", async (req, res): Promise<void> => {
   }
 
   const [tutor] = await db.select().from(tutorsTable).where(eq(tutorsTable.id, params.data.id));
-  if (!tutor) {
+  if (!tutor || tutor.isApproved !== 1) {
     res.status(404).json({ error: "Tutor not found" });
     return;
   }

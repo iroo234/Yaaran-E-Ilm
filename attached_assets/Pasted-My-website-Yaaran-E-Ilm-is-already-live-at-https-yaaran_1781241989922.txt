@@ -1,0 +1,94 @@
+My website Yaaran E Ilm is already live at https://yaaran-e-ilm--iroo234.replit.app and the /setup admin account has already been created. Do NOT reset or touch the /setup route. Here is everything I need built and improved:
+STUDENT DASHBOARD:
+
+After login, students see: upcoming bookings, saved tutors, session history, resources they've downloaded, and a progress tracker showing how many sessions completed
+Students can message tutors directly through an in-app chat/messaging system
+Students can search and filter tutors by subject, class level (O/A Level, Matric, Grade 1–12), price range, and rating
+
+TUTOR DASHBOARD:
+
+After login, tutors see: pending booking requests, accepted sessions, their earnings, their profile completion status, and student messages
+Tutors can set their availability (days and time slots they are free)
+Tutors can set their hourly rate (PKR and/or free)
+Tutors can upload study resources (PDFs, notes) linked to their profile
+Tutors can accept or decline booking requests from students
+
+BOOKING SYSTEM:
+
+Students request a session with a tutor by selecting a subject, date, time slot, and sending a short message
+Tutor receives notification and can accept or decline
+Once accepted, booking is confirmed and appears in both dashboards
+Session status: Pending → Confirmed → Completed → Reviewed
+After a session is marked Completed, student is prompted to leave a review
+
+REVIEWS & RATINGS:
+
+Students leave a 1–5 star rating plus written review after a completed session
+Reviews display on the tutor's public profile
+Tutors cannot delete their own reviews (only admin can)
+Homepage shows overall platform stats: total students, total tutors, total sessions completed
+
+IN-APP MESSAGING:
+
+Students and tutors can send messages to each other within the platform
+Clean chat interface, shows message history
+No external email needed
+
+PAYMENTS:
+
+Tutors set their rate (free or paid in PKR)
+Add Stripe or a payment placeholder for paid sessions
+Platform keeps 20% commission, tutor receives 80%
+Payment is held by the platform and only released to the tutor after the student confirms the session is complete (escrow method)
+Tutor sees their total earnings and pending payouts in their dashboard
+Admin sees all transactions and revenue in the admin panel
+
+RESOURCES SECTION:
+
+Tutors and students can upload PDFs and study notes
+Organized by subject and class level (O/A Level, Matric, etc.)
+Anyone can browse, but only logged-in users can upload
+Each resource shows who uploaded it and when
+
+ADMIN PANEL (already accessible — enhance it):
+
+Approve or reject tutor registrations
+View and manage all users, bookings, sessions, reviews
+Remove inappropriate content or suspend users
+View full revenue dashboard: total earnings, commissions, tutor payouts
+View platform growth stats: new signups per week, sessions per week, top tutors
+
+NOTIFICATIONS:
+
+In-app notification bell icon in the navbar
+Notifications for: new booking request, booking confirmed, booking declined, new message, new review received, session completed
+
+SECURITY & PERFORMANCE:
+
+All passwords hashed with bcrypt
+JWT authentication with secure sessions
+Rate limiting on login and registration endpoints to prevent abuse
+Input validation and sanitization on all forms
+Protect all dashboard routes so only logged-in users can access them
+
+UI / DESIGN:
+
+Keep the peony baby pink and espresso brown theme and the Yaaran E Ilm logo
+Fully responsive on mobile and desktop (very important — over 72% of users in Pakistan use mobile)
+Homepage must have: hero section, mission statement of Yaaran E Ilm, how it works (3 steps), tutor listings (approved tutors only), platform stats, student reviews carousel, sign up CTA
+Add a proper footer with: About, Contact, Privacy Policy, Terms of Use pages
+
+DATABASE (use existing Replit production PostgreSQL):
+
+Tables needed: users, tutors, students, bookings, sessions, reviews, messages, resources, payments, notifications
+Run all pending migrations before republishing
+
+SEO:
+
+Meta title and description on every page
+Open Graph tags for WhatsApp and Facebook sharing previews
+Sitemap.xml file
+
+AFTER ALL CHANGES:
+
+Build the production bundle, run database migrations, and republish the live site automatically. Confirm the live URL https://yaaran-e-ilm--iroo234.replit.app reflects all updates.

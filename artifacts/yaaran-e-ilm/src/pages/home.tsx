@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useGetPlatformStats,
   useListTutors,
@@ -52,6 +53,15 @@ export function Home() {
   const featuredTutors = (tutors ?? [])
     .filter((t: any) => t.isApproved)
     .slice(0, 3);
+  const [showForm, setShowForm] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [form, setForm] = useState({ name: "", email: "", text: "" });
+  const handleSubmit = () => {
+    if (!form.name || !form.text) return;
+    setReviews([...reviews, { ...form, id: Date.now() }]);
+    setForm({ name: "", email: "", text: "" });
+    setShowForm(false);
+  };
 
   return (
     <div className="flex flex-col">
@@ -461,10 +471,56 @@ export function Home() {
           </div>
         </div>
         <div className="text-center mt-8">
-          <button className="bg-accent text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition">
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-accent text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
+          >
             + Leave a Review
           </button>
         </div>
+
+        {showForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card p-6 rounded-2xl w-full max-w-md space-y-4 shadow-xl">
+              <h3 className="text-lg font-semibold text-primary">
+                Leave a Review
+              </h3>
+              <input
+                placeholder="Your name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full border rounded-lg p-3 text-sm"
+              />
+              <input
+                placeholder="Your email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full border rounded-lg p-3 text-sm"
+              />
+              <textarea
+                placeholder="Write your review..."
+                value={form.text}
+                onChange={(e) => setForm({ ...form, text: e.target.value })}
+                className="w-full border rounded-lg p-3 text-sm"
+                rows={4}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSubmit}
+                  className="flex-1 bg-accent text-white py-2 rounded-lg text-sm font-semibold"
+                >
+                  Submit
+                </button>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 border py-2 rounded-lg text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CTA */}

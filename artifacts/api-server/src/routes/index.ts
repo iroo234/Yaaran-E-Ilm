@@ -6,6 +6,7 @@ import videosRouter from "./videos";
 import classesRouter from "./classes";
 import statsRouter from "./stats";
 import adminRouter from "./admin";
+import setupRouter from "./setup";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(videosRouter);
 router.use(classesRouter);
 router.use(statsRouter);
 router.use(adminRouter);
+router.use(setupRouter);
 
 export default router;

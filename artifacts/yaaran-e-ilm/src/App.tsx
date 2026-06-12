@@ -15,6 +15,7 @@ import { ClassDetail } from "@/pages/class-detail";
 import { CreateClass } from "@/pages/create-class";
 import { MyClasses } from "@/pages/my-classes";
 import { Admin } from "@/pages/admin";
+import { Setup } from "@/pages/setup";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/create-class" component={CreateClass} />
         <Route path="/admin" component={Admin} />
+        <Route path="/setup" component={Setup} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

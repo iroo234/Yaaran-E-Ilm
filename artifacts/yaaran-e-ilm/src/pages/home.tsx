@@ -460,6 +460,11 @@ export function Home() {
             ))}
           </div>
         </div>
+        <div className="text-center mt-8">
+          <button className="bg-accent text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition">
+            + Leave a Review
+          </button>
+        </div>
       </section>
 
       {/* CTA */}

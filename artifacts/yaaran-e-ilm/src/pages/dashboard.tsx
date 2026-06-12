@@ -1,153 +1,249 @@
-import { useGetMe, useGetPlatformStats, useGetMyClasses, useGetMyVideos } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { useGetMe } from "@workspace/api-client-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { BookOpen, PlayCircle, Users, GraduationCap, PlusCircle, Upload } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, Clock, CheckCircle, XCircle, Star, BookOpen, MessageSquare, Users, TrendingUp, AlertCircle } from "lucide-react";
 
-export function Dashboard() {
-  const { data: user, isLoading: userLoading } = useGetMe();
-  const { data: myClasses } = useGetMyClasses({ query: { enabled: !!user } });
-  const { data: myVideos } = useGetMyVideos({ query: { enabled: !!user } });
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-  if (userLoading) {
-    return <div className="p-12 text-center text-muted-foreground">Loading dashboard...</div>;
-  }
+async function apiFetch(path: string, options?: RequestInit) {
+  const res = await fetch(`${BASE}${path}`, { credentials: "include", headers: { "Content-Type": "application/json" }, ...options });
+  if (!res.ok) { const e = await res.json().catch(() => ({ error: "Error" })); throw new Error(e.error ?? "Request failed"); }
+  return res.json();
+}
 
-  if (!user) {
-    return (
-      <div className="p-12 text-center">
-        <h2 className="text-2xl font-bold mb-4">Please log in</h2>
-        <Link href="/login"><Button>Go to Login</Button></Link>
-      </div>
-    );
-  }
+type Booking = {
+  id: number; studentId: number; tutorId: number; subject: string; message?: string;
+  date: string; timeSlot: string; status: string; hourlyRate: string;
+  studentName: string; tutorName: string; tutorProfileId?: number; hasReview: boolean; createdAt: string;
+};
 
-  const isTutor = user.role === "tutor";
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    confirmed: "bg-blue-100 text-blue-700 border-blue-200",
+    completed: "bg-green-100 text-green-700 border-green-200",
+    reviewed: "bg-purple-100 text-purple-700 border-purple-200",
+    declined: "bg-red-100 text-red-700 border-red-200",
+  };
+  return <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold capitalize ${map[status] ?? "bg-gray-100 text-gray-600"}`}>{status}</span>;
+}
 
+function ReviewModal({ booking, onClose }: { booking: Booking; onClose: () => void }) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: () => apiFetch("/api/reviews", { method: "POST", body: JSON.stringify({ bookingId: booking.id, rating, comment }) }),
+    onSuccess: () => { toast({ title: "Review submitted! ⭐" }); qc.invalidateQueries({ queryKey: ["my-bookings"] }); onClose(); },
+    onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }),
+  });
   return (
-    <div className="container mx-auto py-12 px-4 max-w-6xl">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-        <div>
-          <h1 className="text-4xl font-serif font-bold text-primary mb-2">Welcome back, {user.name}</h1>
-          <p className="text-lg text-muted-foreground">
-            {isTutor ? "Manage your classes and content." : "Continue your learning journey."}
-          </p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4">
+        <h3 className="font-serif text-xl font-bold text-primary">Rate session with {booking.tutorName}</h3>
+        <div className="flex gap-2">
+          {[1,2,3,4,5].map(s => (
+            <button key={s} onClick={() => setRating(s)} className={`text-3xl transition-transform hover:scale-110 ${s <= rating ? "text-yellow-400" : "text-gray-300"}`}>★</button>
+          ))}
         </div>
-        <div className="flex gap-4">
-          <Link href="/upload">
-            <Button variant="outline" className="gap-2">
-              <Upload className="w-4 h-4" /> Upload Video
-            </Button>
-          </Link>
-          {isTutor && (
-            <Link href="/create-class">
-              <Button className="gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-                <PlusCircle className="w-4 h-4" /> Create Class
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="bg-card border-border/50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">My Role</CardTitle>
-            <UserIcon className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize text-primary">{user.role}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border/50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">My Classes</CardTitle>
-            <BookOpen className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{myClasses?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border/50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">My Videos</CardTitle>
-            <PlayCircle className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{myVideos?.length || 0}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold font-serif text-primary">Recent Classes</h2>
-            <Link href="/my/classes"><Button variant="link">View All</Button></Link>
-          </div>
-          {myClasses && myClasses.length > 0 ? (
-            <div className="space-y-4">
-              {myClasses.slice(0, 3).map(cls => (
-                <Card key={cls.id} className="p-4 border-border/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                  <div>
-                    <h4 className="font-bold text-lg">{cls.title}</h4>
-                    <p className="text-sm text-muted-foreground">{cls.subject} • {cls.level}</p>
-                  </div>
-                  <Link href={`/classes/${cls.id}`}>
-                    <Button variant="secondary" size="sm">View Details</Button>
-                  </Link>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="p-8 text-center border-dashed">
-              <p className="text-muted-foreground mb-4">You have no active classes.</p>
-              {isTutor ? (
-                <Link href="/create-class"><Button>Create your first class</Button></Link>
-              ) : (
-                <Link href="/classes"><Button>Browse classes</Button></Link>
-              )}
-            </Card>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold font-serif text-primary">Recent Videos</h2>
-            <Link href="/my/videos"><Button variant="link">View All</Button></Link>
-          </div>
-          {myVideos && myVideos.length > 0 ? (
-            <div className="space-y-4">
-              {myVideos.slice(0, 3).map(video => (
-                <Card key={video.id} className="p-4 border-border/50 flex items-center gap-4">
-                  <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                    {video.thumbnailUrl ? (
-                      <img src={video.thumbnailUrl} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-secondary/10"><PlayCircle className="w-6 h-6 text-secondary/50" /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold truncate">{video.title}</h4>
-                    <p className="text-sm text-muted-foreground">{video.views} views</p>
-                  </div>
-                  <Link href={`/videos/${video.id}`}>
-                    <Button variant="ghost" size="icon"><PlayCircle className="w-5 h-5" /></Button>
-                  </Link>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="p-8 text-center border-dashed">
-              <p className="text-muted-foreground mb-4">You haven't uploaded any videos yet.</p>
-              <Link href="/upload"><Button>Upload a video</Button></Link>
-            </Card>
-          )}
+        <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience (optional)..." className="w-full border border-border rounded-xl p-3 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-accent/40 bg-background" />
+        <div className="flex gap-2">
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90 flex-1">{mutation.isPending ? "Submitting..." : "Submit Review"}</Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
         </div>
       </div>
     </div>
   );
 }
 
-// Add UserIcon to imports
-import { User as UserIcon } from "lucide-react";
+export function Dashboard() {
+  const { data: user, isLoading } = useGetMe();
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
+    queryKey: ["my-bookings"],
+    queryFn: () => apiFetch("/api/bookings/my"),
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: (id: number) => apiFetch(`/api/bookings/${id}/accept`, { method: "POST" }),
+    onSuccess: () => { toast({ title: "Booking accepted!" }); qc.invalidateQueries({ queryKey: ["my-bookings"] }); },
+    onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }),
+  });
+  const declineMutation = useMutation({
+    mutationFn: (id: number) => apiFetch(`/api/bookings/${id}/decline`, { method: "POST" }),
+    onSuccess: () => { toast({ title: "Booking declined" }); qc.invalidateQueries({ queryKey: ["my-bookings"] }); },
+    onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }),
+  });
+  const completeMutation = useMutation({
+    mutationFn: (id: number) => apiFetch(`/api/bookings/${id}/complete`, { method: "POST" }),
+    onSuccess: (_, id) => {
+      toast({ title: "Session marked complete!" });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      const b = bookings.find(x => x.id === id);
+      if (b && !user?.role?.includes("tutor")) setReviewBooking(b);
+    },
+    onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }),
+  });
+
+  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Loading...</div>;
+  if (!user) return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+      <p className="text-muted-foreground">Please log in to view your dashboard.</p>
+      <Link href="/login"><Button className="bg-accent text-accent-foreground">Log in</Button></Link>
+    </div>
+  );
+
+  const isTutor = user.role === "tutor";
+  const pending = bookings.filter(b => b.status === "pending");
+  const confirmed = bookings.filter(b => b.status === "confirmed");
+  const completed = bookings.filter(b => b.status === "completed");
+  const history = bookings.filter(b => ["reviewed", "declined"].includes(b.status));
+
+  return (
+    <div className="min-h-screen bg-background">
+      {reviewBooking && <ReviewModal booking={reviewBooking} onClose={() => setReviewBooking(null)} />}
+      <div className="bg-primary text-primary-foreground px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="font-serif text-2xl md:text-3xl font-bold mb-1">Welcome back, {user.name} 👋</h1>
+          <p className="text-primary-foreground/60 text-sm capitalize">{isTutor ? "Tutor Dashboard" : "Student Dashboard"}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+            {[
+              { label: "Pending", value: pending.length, icon: <Clock className="w-4 h-4 text-yellow-300" /> },
+              { label: "Confirmed", value: confirmed.length, icon: <CheckCircle className="w-4 h-4 text-blue-300" /> },
+              { label: "Completed", value: completed.length + history.filter(b=>b.status==="reviewed").length, icon: <Star className="w-4 h-4 text-green-300" /> },
+              { label: "Total Sessions", value: bookings.length, icon: <Users className="w-4 h-4 text-accent" /> },
+            ].map(s => (
+              <div key={s.label} className="bg-primary-foreground/10 rounded-xl p-3 flex items-center gap-2">
+                {s.icon}
+                <div><p className="text-xl font-bold font-serif text-primary-foreground">{s.value}</p><p className="text-xs text-primary-foreground/60">{s.label}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Pending */}
+        {pending.length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl font-bold text-primary mb-4 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-yellow-500" />{isTutor ? "Awaiting Your Response" : "Pending Requests"}</h2>
+            <div className="space-y-3">
+              {pending.map(b => (
+                <div key={b.id} className="bg-card border border-yellow-200 rounded-2xl p-5 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-primary">{isTutor ? b.studentName : b.tutorName}</span>
+                        <StatusBadge status={b.status} />
+                      </div>
+                      <p className="text-sm text-muted-foreground">{b.subject} · {b.date} at {b.timeSlot}</p>
+                      {b.message && <p className="text-sm text-muted-foreground italic border-l-2 border-accent/30 pl-2">"{b.message}"</p>}
+                      <p className="text-xs font-medium text-primary/70">Rate: {b.hourlyRate === "free" ? "Free" : `PKR ${b.hourlyRate}/hr`}</p>
+                    </div>
+                    {isTutor && (
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1" onClick={() => acceptMutation.mutate(b.id)} disabled={acceptMutation.isPending}><CheckCircle className="w-3.5 h-3.5" />Accept</Button>
+                        <Button size="sm" variant="outline" className="border-destructive text-destructive hover:bg-destructive/5 gap-1" onClick={() => declineMutation.mutate(b.id)} disabled={declineMutation.isPending}><XCircle className="w-3.5 h-3.5" />Decline</Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Confirmed */}
+        {confirmed.length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl font-bold text-primary mb-4 flex items-center gap-2"><Calendar className="w-5 h-5 text-blue-500" />Upcoming Sessions</h2>
+            <div className="space-y-3">
+              {confirmed.map(b => (
+                <div key={b.id} className="bg-card border border-blue-200 rounded-2xl p-5 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-primary">{isTutor ? b.studentName : b.tutorName}</span>
+                        <StatusBadge status={b.status} />
+                      </div>
+                      <p className="text-sm text-muted-foreground">{b.subject} · {b.date} at {b.timeSlot}</p>
+                      <p className="text-xs font-medium text-primary/70">Rate: {b.hourlyRate === "free" ? "Free" : `PKR ${b.hourlyRate}/hr`}</p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Link href={`/messages?with=${isTutor ? b.studentId : b.tutorId}`}>
+                        <Button size="sm" variant="outline" className="gap-1"><MessageSquare className="w-3.5 h-3.5" />Message</Button>
+                      </Link>
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1" onClick={() => completeMutation.mutate(b.id)} disabled={completeMutation.isPending}><CheckCircle className="w-3.5 h-3.5" />Mark Complete</Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Need review */}
+        {!isTutor && completed.filter(b => !b.hasReview).length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl font-bold text-primary mb-4 flex items-center gap-2"><Star className="w-5 h-5 text-yellow-500" />Leave a Review</h2>
+            <div className="space-y-3">
+              {completed.filter(b => !b.hasReview).map(b => (
+                <div key={b.id} className="bg-card border border-green-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <span className="font-semibold text-primary">{b.tutorName}</span>
+                    <p className="text-sm text-muted-foreground">{b.subject} · {b.date}</p>
+                  </div>
+                  <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1" onClick={() => setReviewBooking(b)}><Star className="w-3.5 h-3.5" />Leave Review</Button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* History */}
+        {history.length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl font-bold text-primary mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-muted-foreground" />Session History</h2>
+            <div className="space-y-2">
+              {history.map(b => (
+                <div key={b.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-primary text-sm">{isTutor ? b.studentName : b.tutorName}</span>
+                      <StatusBadge status={b.status} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{b.subject} · {b.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {bookings.length === 0 && !bookingsLoading && (
+          <div className="bg-card border border-border rounded-2xl p-12 text-center space-y-4">
+            <BookOpen className="w-12 h-12 text-muted-foreground mx-auto" />
+            <h3 className="font-serif text-xl font-bold text-primary">{isTutor ? "No bookings yet" : "Start your learning journey"}</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">{isTutor ? "Students will book sessions once your profile is live." : "Browse our tutors and book your first free session."}</p>
+            {!isTutor && <Link href="/tutors"><Button className="bg-accent text-accent-foreground hover:bg-accent/90">Browse Tutors</Button></Link>}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Link href="/messages"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><MessageSquare className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Messages</span></div></Link>
+          <Link href="/resources"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><BookOpen className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Resources</span></div></Link>
+          <Link href="/tutors"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><Users className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Find Tutors</span></div></Link>
+        </div>
+      </div>
+    </div>
+  );
+}

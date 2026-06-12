@@ -10,6 +10,7 @@ export const tutorsTable = pgTable("tutors", {
   level: text("level"),
   rating: real("rating"),
   isApproved: integer("is_approved").notNull().default(0),
+  hourlyRate: text("hourly_rate").notNull().default("free"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

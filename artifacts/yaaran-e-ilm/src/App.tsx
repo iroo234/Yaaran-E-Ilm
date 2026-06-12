@@ -16,6 +16,13 @@ import { CreateClass } from "@/pages/create-class";
 import { MyClasses } from "@/pages/my-classes";
 import { Admin } from "@/pages/admin";
 import { Setup } from "@/pages/setup";
+import { Messages } from "@/pages/messages";
+import { Resources } from "@/pages/resources";
+import { TutorProfileSettings } from "@/pages/tutor-profile-settings";
+import { About } from "@/pages/about";
+import { Contact } from "@/pages/contact";
+import { Privacy } from "@/pages/privacy";
+import { Terms } from "@/pages/terms";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +42,13 @@ function Router() {
         <Route path="/create-class" component={CreateClass} />
         <Route path="/admin" component={Admin} />
         <Route path="/setup" component={Setup} />
+        <Route path="/messages" component={Messages} />
+        <Route path="/resources" component={Resources} />
+        <Route path="/tutor-settings" component={TutorProfileSettings} />
+        <Route path="/about" component={About} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

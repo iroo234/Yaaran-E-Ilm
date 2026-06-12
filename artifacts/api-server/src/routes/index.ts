@@ -7,6 +7,12 @@ import classesRouter from "./classes";
 import statsRouter from "./stats";
 import adminRouter from "./admin";
 import setupRouter from "./setup";
+import bookingsRouter from "./bookings";
+import reviewsRouter from "./reviews";
+import messagesRouter from "./messages";
+import notificationsRouter from "./notifications";
+import resourcesRouter from "./resources";
+import availabilityRouter from "./availability";
 
 const router: IRouter = Router();
 
@@ -18,5 +24,11 @@ router.use(classesRouter);
 router.use(statsRouter);
 router.use(adminRouter);
 router.use(setupRouter);
+router.use(bookingsRouter);
+router.use(reviewsRouter);
+router.use(messagesRouter);
+router.use(notificationsRouter);
+router.use(resourcesRouter);
+router.use(availabilityRouter);
 
 export default router;

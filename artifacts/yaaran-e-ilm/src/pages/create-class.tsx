@@ -67,7 +67,7 @@ export function CreateClass() {
         toast({
           variant: "destructive",
           title: "Failed to create class",
-          description: error.error || "There was a problem creating your class.",
+          description: (error as any)?.error || "There was a problem creating your class.",
         });
       }
     });

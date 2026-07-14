@@ -34,7 +34,7 @@ export function ClassDetail() {
         toast({
           variant: "destructive",
           title: "Enrollment Failed",
-          description: error.error || "Could not enroll in the class.",
+          description: (error as any)?.error || "Could not enroll in the class.",
         });
       }
     });

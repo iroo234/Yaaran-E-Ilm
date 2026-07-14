@@ -24,7 +24,7 @@ const SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "
 
 export function TutorDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: tutor, isLoading } = useGetTutor({ id: parseInt(id) });
+  const { data: tutor, isLoading } = useGetTutor(parseInt(id));
   const { data: user } = useGetMe();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -56,8 +56,15 @@ export function TutorDetail() {
     onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }),
   });
 
-  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Loading...</div>;
-  if (!tutor) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Tutor not found.</div>;
+  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>;
+  if (!tutor) return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-muted-foreground">
+      <Users className="w-12 h-12 text-muted-foreground/30" />
+      <p className="text-lg font-medium text-primary">Tutor profile not available</p>
+      <p className="text-sm">This tutor may be pending approval or has been removed.</p>
+      <Link href="/tutors"><Button variant="outline">Browse Other Tutors</Button></Link>
+    </div>
+  );
 
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null;
   const initials = tutor.name?.split(" ").map((w: string) => w[0]).join("").toUpperCase() ?? "T";
@@ -94,19 +101,22 @@ export function TutorDetail() {
           </div>
         </div>
 
-        {user && user.role !== "tutor" && (
+        {user && (user as any).id !== tutor.userId && (
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2" onClick={() => setShowBooking(true)}>
-              <Calendar className="w-4 h-4" />Book a Session
-            </Button>
-            <Button variant="outline" className="gap-2" onClick={() => messageMutation.mutate()} disabled={messageMutation.isPending}>
-              <MessageSquare className="w-4 h-4" />Message
+            {user.role !== "tutor" && (
+              <Button className="bg-accent text-accent-foreground hover:bg-accent/90 hover:scale-[1.02] transition-all gap-2 shadow-sm" onClick={() => setShowBooking(true)}>
+                <Calendar className="w-4 h-4" />Book a Session
+              </Button>
+            )}
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] transition-all gap-2 shadow-sm" onClick={() => messageMutation.mutate()} disabled={messageMutation.isPending}>
+              <MessageSquare className="w-4 h-4" />{messageMutation.isPending ? "Opening..." : "Chat with Tutor"}
             </Button>
           </div>
         )}
         {!user && (
-          <div className="mt-6">
-            <Link href="/login"><Button className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"><Calendar className="w-4 h-4" />Log in to Book</Button></Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/login"><Button className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"><MessageSquare className="w-4 h-4" />Log in to Chat</Button></Link>
+            <Link href="/login"><Button variant="outline" className="gap-2"><Calendar className="w-4 h-4" />Log in to Book</Button></Link>
           </div>
         )}
       </div>

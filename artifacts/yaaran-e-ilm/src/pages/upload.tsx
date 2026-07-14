@@ -63,7 +63,7 @@ export function Upload() {
         toast({
           variant: "destructive",
           title: "Upload Failed",
-          description: error.error || "There was a problem uploading your video.",
+          description: (error as any)?.error || "There was a problem uploading your video.",
         });
       }
     });

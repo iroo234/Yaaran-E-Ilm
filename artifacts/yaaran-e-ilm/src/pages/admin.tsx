@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useGetMe } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users, GraduationCap, CheckCircle, XCircle, Clock, BookOpen, Trash2, ShieldCheck, ToggleLeft, ToggleRight, Star, CalendarCheck } from "lucide-react";
+import { Users, GraduationCap, CheckCircle, XCircle, Clock, Trash2, ShieldCheck, ToggleLeft, ToggleRight, Star, CalendarCheck, Edit3, Save, Phone } from "lucide-react";
+import { motion } from "framer-motion";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 async function apiFetch(path: string, options?: RequestInit) {
@@ -14,17 +17,31 @@ async function apiFetch(path: string, options?: RequestInit) {
 }
 
 type AdminStats = { totalUsers: number; totalTutors: number; pendingTutors: number; approvedTutors: number; totalClasses: number; totalEnrollments: number; totalBookings: number; completedSessions: number; totalReviews: number; adminCount: number; };
-type AdminUser = { id: number; name: string; email: string; role: string; isAdmin: boolean; createdAt: string; };
-type AdminTutor = { id: number; userId: number; name: string; email: string; bio?: string; subject?: string; level?: string; isApproved: boolean; hourlyRate?: string; createdAt: string; };
-type AdminBooking = { id: number; studentName: string; tutorName: string; subject: string; date: string; timeSlot: string; status: string; hourlyRate: string; createdAt: string; };
+type AdminUser = { id: number; name: string; email: string; role: string; isAdmin: boolean; phone?: string; grade?: string; age?: number; createdAt: string; };
+type AdminTutor = { id: number; userId: number; name: string; email: string; bio?: string; subject?: string; level?: string; isApproved: boolean; hourlyRate?: string; phone?: string; hasPhone: boolean; createdAt: string; };
+type AdminBooking = { id: number; studentName: string; tutorName: string; subject: string; date: string; timeSlot: string; status: string; hourlyRate: string; };
 type AdminReview = { id: number; studentName: string; tutorName: string; rating: number; comment?: string; createdAt: string; };
 type Admin = { id: number; name: string; email: string; createdAt: string; };
+
+const CONTENT_FIELDS = [
+  { key: "hero_title", label: "Hero Title" },
+  { key: "hero_subtitle", label: "Hero Subtitle" },
+  { key: "about_text", label: "About Section Text" },
+  { key: "how_it_works", label: "How It Works" },
+  { key: "footer_text", label: "Footer Text" },
+  { key: "support_page_intro", label: "Support Us — Introduction" },
+  { key: "support_page_payment", label: "Support Us — Payment Details" },
+  { key: "support_page_contact_email", label: "Support Us — Contact Email" },
+  { key: "support_page_whatsapp", label: "Support Us — WhatsApp" },
+];
 
 export function Admin() {
   const { data: user, isLoading } = useGetMe();
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"pending" | "tutors" | "users" | "bookings" | "reviews" | "admins">("pending");
+  const [tab, setTab] = useState<"pending" | "tutors" | "users" | "bookings" | "reviews" | "admins" | "content">("pending");
+  const [contentEdits, setContentEdits] = useState<Record<string, string>>({});
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   const { data: stats } = useQuery<AdminStats>({ queryKey: ["admin-stats"], queryFn: () => apiFetch("/api/admin/stats"), enabled: !!user });
   const { data: pending = [] } = useQuery<AdminTutor[]>({ queryKey: ["admin-pending"], queryFn: () => apiFetch("/api/admin/tutors/pending"), enabled: !!user && tab === "pending" });
@@ -33,16 +50,30 @@ export function Admin() {
   const { data: bookings = [] } = useQuery<AdminBooking[]>({ queryKey: ["admin-bookings"], queryFn: () => apiFetch("/api/admin/bookings"), enabled: !!user && tab === "bookings" });
   const { data: reviews = [] } = useQuery<AdminReview[]>({ queryKey: ["admin-reviews"], queryFn: () => apiFetch("/api/admin/reviews"), enabled: !!user && tab === "reviews" });
   const { data: admins = [] } = useQuery<Admin[]>({ queryKey: ["admin-admins"], queryFn: () => apiFetch("/api/admin/admins"), enabled: !!user && tab === "admins" });
-  const { data: setupToggle } = useQuery<{ enabled: boolean }>({ queryKey: ["admin-setup-toggle"], queryFn: () => apiFetch("/api/admin/setup-toggle"), enabled: !!user && tab === "admins" });
+  const { data: setupToggle } = useQuery<{ enabled: boolean; adminCount: number }>({ queryKey: ["admin-setup-toggle"], queryFn: () => apiFetch("/api/admin/setup-toggle"), enabled: !!user && tab === "admins" });
+  const { data: siteContent = {} } = useQuery<Record<string, string>>({ queryKey: ["site-content-admin"], queryFn: () => apiFetch("/api/content"), enabled: !!user && tab === "content" });
 
-  const approve = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/tutors/${id}/approve`, { method: "POST" }), onSuccess: () => { toast({ title: "Approved!" }); qc.invalidateQueries({ queryKey: ["admin-pending"] }); qc.invalidateQueries({ queryKey: ["admin-tutors"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
-  const reject = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/tutors/${id}/reject`, { method: "POST" }), onSuccess: () => { toast({ title: "Rejected" }); qc.invalidateQueries({ queryKey: ["admin-pending"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
+  const approve = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/tutors/${id}/approve`, { method: "POST" }), onSuccess: () => { toast({ title: "Approved! ✅" }); qc.invalidateQueries({ queryKey: ["admin-pending"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
+  const reject = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/tutors/${id}/reject`, { method: "POST" }), onSuccess: () => { toast({ title: "Application rejected, user notified." }); qc.invalidateQueries({ queryKey: ["admin-pending"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
   const deleteUser = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/users/${id}`, { method: "DELETE" }), onSuccess: () => { toast({ title: "User removed" }); qc.invalidateQueries({ queryKey: ["admin-users"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
   const deleteReview = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/reviews/${id}`, { method: "DELETE" }), onSuccess: () => { toast({ title: "Review removed" }); qc.invalidateQueries({ queryKey: ["admin-reviews"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
   const removeAdmin = useMutation({ mutationFn: (id: number) => apiFetch(`/api/admin/admins/${id}`, { method: "DELETE" }), onSuccess: () => { toast({ title: "Admin removed" }); qc.invalidateQueries({ queryKey: ["admin-admins"] }); qc.invalidateQueries({ queryKey: ["admin-stats"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
   const toggleSetup = useMutation({ mutationFn: (enabled: boolean) => apiFetch("/api/admin/setup-toggle", { method: "POST", body: JSON.stringify({ enabled }) }), onSuccess: () => { toast({ title: "Setup toggle updated" }); qc.invalidateQueries({ queryKey: ["admin-setup-toggle"] }); }, onError: (e: Error) => toast({ variant: "destructive", title: "Error", description: e.message }) });
 
-  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Loading...</div>;
+  const saveContent = async (key: string) => {
+    const value = contentEdits[key] ?? siteContent[key];
+    if (!value) return;
+    setSavingKey(key);
+    try {
+      await apiFetch(`/api/content/${key}`, { method: "POST", body: JSON.stringify({ value }) });
+      qc.invalidateQueries({ queryKey: ["site-content"] });
+      qc.invalidateQueries({ queryKey: ["site-content-admin"] });
+      toast({ title: "Content saved! ✅", description: "Changes are live on the website." });
+    } catch (e: any) { toast({ variant: "destructive", title: "Save failed", description: e.message }); }
+    finally { setSavingKey(null); }
+  };
+
+  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>;
   if (!user) return <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4"><ShieldCheck className="w-12 h-12 text-muted-foreground" /><h2 className="font-serif text-2xl font-bold text-primary">Admin Access Required</h2><Link href="/login"><Button className="bg-accent text-accent-foreground">Log in</Button></Link></div>;
   if (!(user as any).isAdmin) return <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4"><ShieldCheck className="w-12 h-12 text-destructive" /><h2 className="font-serif text-2xl font-bold text-primary">Access Denied</h2><Link href="/"><Button variant="outline">Go Home</Button></Link></div>;
 
@@ -53,6 +84,7 @@ export function Admin() {
     { id: "bookings" as const, label: "Bookings", icon: <CalendarCheck className="w-4 h-4" />, count: stats?.totalBookings },
     { id: "reviews" as const, label: "Reviews", icon: <Star className="w-4 h-4" />, count: stats?.totalReviews },
     { id: "admins" as const, label: "Admins", icon: <ShieldCheck className="w-4 h-4" />, count: stats?.adminCount },
+    { id: "content" as const, label: "Edit Content", icon: <Edit3 className="w-4 h-4" /> },
   ];
 
   return (
@@ -85,6 +117,8 @@ export function Admin() {
           ))}
         </div>
 
+        <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+
         {/* Pending */}
         {tab === "pending" && (
           <div className="space-y-4">
@@ -93,8 +127,13 @@ export function Admin() {
               <div key={t.id} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap"><h3 className="font-serif text-lg font-bold text-primary">{t.name}</h3><span className="text-xs bg-yellow-100 text-yellow-700 border border-yellow-200 px-2 py-0.5 rounded-full font-semibold">Pending</span></div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-serif text-lg font-bold text-primary">{t.name}</h3>
+                      <span className="text-xs bg-yellow-100 text-yellow-700 border border-yellow-200 px-2 py-0.5 rounded-full font-semibold">Pending</span>
+                      {!t.hasPhone && <span className="text-xs bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"><Phone className="w-3 h-3" />No Phone</span>}
+                    </div>
                     <p className="text-sm text-muted-foreground">{t.email}</p>
+                    {t.phone && <p className="text-sm text-primary font-medium flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-accent" />{t.phone}</p>}
                     <div className="flex gap-2 flex-wrap">{t.subject && <span className="text-xs bg-accent/15 text-primary px-2 py-0.5 rounded-full">{t.subject}</span>}{t.level && <span className="text-xs bg-secondary text-primary px-2 py-0.5 rounded-full border border-border">{t.level}</span>}</div>
                     {t.bio && <p className="text-sm text-muted-foreground border-l-2 border-accent/30 pl-3">{t.bio}</p>}
                     <p className="text-xs text-muted-foreground">Applied {new Date(t.createdAt).toLocaleDateString("en-PK", { year: "numeric", month: "long", day: "numeric" })}</p>
@@ -114,12 +153,26 @@ export function Admin() {
           <div className="space-y-3">
             {allTutors.map(t => (
               <div key={t.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3"><div className="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center"><GraduationCap className="w-4 h-4 text-accent" /></div>
-                  <div><p className="font-semibold text-sm text-primary">{t.name}</p><p className="text-xs text-muted-foreground">{t.email}</p>
-                    <div className="flex gap-1.5 mt-1 flex-wrap">{t.subject && <span className="text-xs bg-accent/15 text-primary px-1.5 py-0.5 rounded">{t.subject}</span>}{t.level && <span className="text-xs bg-secondary text-primary px-1.5 py-0.5 rounded border border-border">{t.level}</span>}<span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${t.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{t.isApproved ? "Approved" : "Pending"}</span></div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center"><GraduationCap className="w-4 h-4 text-accent" /></div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm text-primary">{t.name}</p>
+                      {!t.hasPhone && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Phone className="w-2.5 h-2.5" />No Phone</span>}
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${t.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{t.isApproved ? "Approved" : "Pending"}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t.email}</p>
+                    {t.phone && <p className="text-xs text-primary/70 flex items-center gap-1"><Phone className="w-3 h-3" />{t.phone}</p>}
+                    <div className="flex gap-1.5 mt-1 flex-wrap">
+                      {t.subject && <span className="text-xs bg-accent/15 text-primary px-1.5 py-0.5 rounded">{t.subject}</span>}
+                      {t.level && <span className="text-xs bg-secondary text-primary px-1.5 py-0.5 rounded border border-border">{t.level}</span>}
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2">{!t.isApproved && <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1 text-xs" onClick={() => approve.mutate(t.id)}><CheckCircle className="w-3.5 h-3.5" />Approve</Button>}{t.isApproved && <Button size="sm" variant="outline" className="border-destructive text-destructive gap-1 text-xs" onClick={() => reject.mutate(t.id)}><XCircle className="w-3.5 h-3.5" />Revoke</Button>}</div>
+                <div className="flex gap-2">
+                  {!t.isApproved && <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1 text-xs" onClick={() => approve.mutate(t.id)}><CheckCircle className="w-3.5 h-3.5" />Approve</Button>}
+                  {t.isApproved && <Button size="sm" variant="outline" className="border-destructive text-destructive gap-1 text-xs" onClick={() => reject.mutate(t.id)}><XCircle className="w-3.5 h-3.5" />Revoke</Button>}
+                </div>
               </div>
             ))}
           </div>
@@ -130,8 +183,20 @@ export function Admin() {
           <div className="space-y-2">
             {allUsers.map(u => (
               <div key={u.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3"><div className={`w-9 h-9 rounded-full flex items-center justify-center ${u.isAdmin ? "bg-primary" : "bg-muted"}`}>{u.isAdmin ? <ShieldCheck className="w-4 h-4 text-primary-foreground" /> : <Users className="w-4 h-4 text-muted-foreground" />}</div>
-                  <div><div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-sm text-primary">{u.name}</p>{u.isAdmin && <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-bold">Admin</span>}<span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded capitalize">{u.role}</span></div><p className="text-xs text-muted-foreground">{u.email}</p></div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${u.isAdmin ? "bg-primary" : "bg-muted"}`}>
+                    {u.isAdmin ? <ShieldCheck className="w-4 h-4 text-primary-foreground" /> : <Users className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm text-primary">{u.name}</p>
+                      {u.isAdmin && <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-bold">Admin</span>}
+                      <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded capitalize">{u.role}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                    {u.phone && <p className="text-xs text-primary/70 flex items-center gap-1"><Phone className="w-3 h-3" />{u.phone}</p>}
+                    {u.grade && <p className="text-xs text-muted-foreground">Grade: {u.grade}{u.age ? ` · Age: ${u.age}` : ""}</p>}
+                  </div>
                 </div>
                 {!u.isAdmin && <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/5 h-8 w-8 p-0" onClick={() => { if (confirm(`Remove ${u.name}?`)) deleteUser.mutate(u.id); }}><Trash2 className="w-4 h-4" /></Button>}
               </div>
@@ -143,10 +208,13 @@ export function Admin() {
         {tab === "bookings" && (
           <div className="space-y-3">
             {bookings.length === 0 ? <div className="text-center py-8 text-muted-foreground">No bookings yet.</div>
-            : bookings.map(b => (
+            : bookings.map((b: any) => (
               <div key={b.id} className="bg-card border border-border rounded-xl p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <div><p className="font-medium text-primary text-sm">{b.studentName} → {b.tutorName}</p><p className="text-xs text-muted-foreground">{b.subject} · {b.date} at {b.timeSlot}</p><p className="text-xs text-muted-foreground">Rate: {b.hourlyRate === "free" ? "Free" : `PKR ${b.hourlyRate}/hr`}</p></div>
+                  <div>
+                    <p className="font-medium text-primary text-sm">{b.studentName} → {b.tutorName}</p>
+                    <p className="text-xs text-muted-foreground">{b.subject} · {b.date} at {b.timeSlot}</p>
+                  </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold capitalize flex-shrink-0 ${b.status === "confirmed" ? "bg-blue-100 text-blue-700 border-blue-200" : b.status === "completed" || b.status === "reviewed" ? "bg-green-100 text-green-700 border-green-200" : b.status === "declined" ? "bg-red-100 text-red-700 border-red-200" : "bg-yellow-100 text-yellow-700 border-yellow-200"}`}>{b.status}</span>
                 </div>
               </div>
@@ -160,7 +228,11 @@ export function Admin() {
             {reviews.length === 0 ? <div className="text-center py-8 text-muted-foreground">No reviews yet.</div>
             : reviews.map(r => (
               <div key={r.id} className="bg-card border border-border rounded-xl p-4 flex items-start justify-between gap-3">
-                <div><div className="flex items-center gap-2"><p className="font-medium text-sm text-primary">{r.studentName} → {r.tutorName}</p><span className="text-yellow-400 text-sm">{"★".repeat(Math.round(r.rating))}</span></div>{r.comment && <p className="text-xs text-muted-foreground mt-1">"{r.comment}"</p>}<p className="text-xs text-primary/40 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p></div>
+                <div>
+                  <div className="flex items-center gap-2"><p className="font-medium text-sm text-primary">{r.studentName} → {r.tutorName}</p><span className="text-yellow-400 text-sm">{"★".repeat(Math.round(r.rating))}</span></div>
+                  {r.comment && <p className="text-xs text-muted-foreground mt-1">"{r.comment}"</p>}
+                  <p className="text-xs text-primary/40 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
+                </div>
                 <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/5 h-8 w-8 p-0 flex-shrink-0" onClick={() => deleteReview.mutate(r.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
               </div>
             ))}
@@ -170,34 +242,63 @@ export function Admin() {
         {/* Admins */}
         {tab === "admins" && (
           <div className="space-y-6">
-            {/* Setup toggle */}
             <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
               <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-accent" />Setup Page Control</h2>
-              <p className="text-sm text-muted-foreground">The /setup page allows creating admin accounts. It automatically locks after 2 admins. You can manually re-enable it to add a 3rd admin.</p>
+              <p className="text-sm text-muted-foreground">The /setup page allows creating admin accounts. Enable it to allow more admins to join.</p>
               <div className="flex items-center gap-4 p-4 bg-muted/30 border border-border rounded-xl">
-                <div className="flex-1"><p className="font-medium text-primary text-sm">/setup page</p><p className="text-xs text-muted-foreground">{setupToggle?.enabled ? "Currently open — new admins can register" : "Locked — only existing admins can access"}</p></div>
+                <div className="flex-1">
+                  <p className="font-medium text-primary text-sm">/setup page</p>
+                  <p className="text-xs text-muted-foreground">{setupToggle?.enabled ? "Open — admins can register" : "Locked"} · {setupToggle?.adminCount ?? 0} admin(s)</p>
+                </div>
                 <button onClick={() => toggleSetup.mutate(!setupToggle?.enabled)} disabled={toggleSetup.isPending} className="flex items-center gap-2 text-sm font-semibold text-primary">
                   {setupToggle?.enabled ? <ToggleRight className="w-8 h-8 text-green-500" /> : <ToggleLeft className="w-8 h-8 text-muted-foreground" />}
                   {setupToggle?.enabled ? "Enabled" : "Disabled"}
                 </button>
               </div>
             </div>
-
-            {/* Admin list */}
             <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
               <h2 className="font-serif text-lg font-bold text-primary">Admin Accounts ({admins.length})</h2>
               <div className="space-y-2">
                 {admins.map(a => (
                   <div key={a.id} className="flex items-center justify-between p-3 border border-border rounded-xl bg-muted/20">
-                    <div className="flex items-center gap-3"><div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center"><ShieldCheck className="w-4 h-4 text-primary-foreground" /></div><div><p className="font-semibold text-sm text-primary">{a.name}</p><p className="text-xs text-muted-foreground">{a.email}</p></div></div>
+                    <div className="flex items-center gap-3"><div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center"><ShieldCheck className="w-4 h-4 text-primary-foreground" /></div>
+                      <div><p className="font-semibold text-sm text-primary">{a.name}</p><p className="text-xs text-muted-foreground">{a.email}</p></div>
+                    </div>
                     {a.id !== (user as any).id && <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/5 h-8 w-8 p-0" onClick={() => { if (confirm(`Remove ${a.name} as admin?`)) removeAdmin.mutate(a.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>}
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">To add another admin, enable the setup page above, then have them register at <strong>/setup</strong>.</p>
+              <p className="text-xs text-muted-foreground">Enable setup above, then have them register at <strong>/setup</strong>.</p>
             </div>
           </div>
         )}
+
+        {/* Content Editor */}
+        {tab === "content" && (
+          <div className="space-y-4">
+            <div className="bg-accent/10 border border-accent/20 rounded-xl p-4">
+              <p className="text-sm font-semibold text-primary flex items-center gap-2"><Edit3 className="w-4 h-4 text-accent" />Website Content Editor</p>
+              <p className="text-xs text-muted-foreground mt-1">Changes save to the database and update on the live website instantly. No coding required.</p>
+            </div>
+            {CONTENT_FIELDS.map(field => (
+              <div key={field.key} className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                <Label className="font-semibold text-primary">{field.label}</Label>
+                <textarea
+                  value={contentEdits[field.key] ?? siteContent[field.key] ?? ""}
+                  onChange={e => setContentEdits(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  className="w-full border border-border rounded-xl p-3 text-sm resize-none min-h-[80px] focus:outline-none focus:ring-2 focus:ring-accent/40 bg-background text-primary transition-all"
+                  placeholder={`Enter ${field.label.toLowerCase()}...`}
+                />
+                <Button size="sm" onClick={() => saveContent(field.key)} disabled={savingKey === field.key}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1.5 hover:scale-[1.02] transition-all">
+                  <Save className="w-3.5 h-3.5" />
+                  {savingKey === field.key ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        </motion.div>
       </div>
     </div>
   );

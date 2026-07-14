@@ -2,14 +2,15 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, GraduationCap, LayoutDashboard, Users, ShieldCheck, MessageSquare, BookOpen, Settings } from "lucide-react";
+import { LogOut, Menu, GraduationCap, LayoutDashboard, Users, ShieldCheck, MessageSquare, BookOpen, Settings, Heart, Instagram } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationBell } from "@/components/notification-bell";
+import { motion } from "framer-motion";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { data: user } = useGetMe();
   const logout = useLogout();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const handleLogout = () => {
     logout.mutate(undefined, { onSuccess: () => setLocation("/login") });
@@ -31,6 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <Link href="/tutors" className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors gap-1"><Users className="w-4 h-4" />Tutors</Link>
               <Link href="/classes" className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors gap-1"><GraduationCap className="w-4 h-4" />Classes</Link>
               <Link href="/resources" className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors gap-1"><BookOpen className="w-4 h-4" />Resources</Link>
+              <Link href="/support-us" className="flex items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors gap-1"><Heart className="w-3.5 h-3.5 fill-accent" />Support Us</Link>
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -46,7 +48,7 @@ export function Layout({ children }: { children: ReactNode }) {
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/login"><Button variant="ghost" size="sm" className="font-medium">Log in</Button></Link>
-                <Link href="/register"><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm">Join Free</Button></Link>
+                <Link href="/register"><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 hover:scale-[1.03] transition-all font-semibold shadow-sm">Join Free</Button></Link>
               </div>
             )}
             <Sheet>
@@ -63,6 +65,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     { href: "/tutors", label: "Tutors", icon: <Users className="w-4 h-4" /> },
                     { href: "/classes", label: "Classes", icon: <GraduationCap className="w-4 h-4" /> },
                     { href: "/resources", label: "Resources", icon: <BookOpen className="w-4 h-4" /> },
+                    { href: "/support-us", label: "Support Us", icon: <Heart className="w-4 h-4 text-accent fill-accent" /> },
                   ].map(i => <Link key={i.href} href={i.href} className="flex items-center gap-2 text-base font-medium text-primary">{i.icon}{i.label}</Link>)}
                   {user && <Link href="/dashboard" className="flex items-center gap-2 text-base font-medium text-primary"><LayoutDashboard className="w-4 h-4" />Dashboard</Link>}
                   {user && <Link href="/messages" className="flex items-center gap-2 text-base font-medium text-primary"><MessageSquare className="w-4 h-4" />Messages</Link>}
@@ -78,22 +81,40 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="flex-1 w-full">{children}</main>
+
+      <motion.main key={location} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="flex-1 w-full">
+        {children}
+      </motion.main>
+
       <footer className="border-t border-border py-10 bg-card">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="flex items-center gap-3">
               <img src="/logo.jpeg" alt="Logo" className="h-10 w-10 rounded-full object-cover" />
-              <div><p className="font-serif text-lg font-bold text-primary">Yaaran E Ilm</p><p className="text-xs text-muted-foreground">Friends of Knowledge</p></div>
+              <div><p className="font-serif text-lg font-bold text-primary">Yaaran E Ilm</p><p className="text-xs text-muted-foreground">Friends of Knowledge · یاران علم</p></div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
-              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Platform</p><Link href="/tutors" className="block hover:text-primary transition-colors">Find Tutors</Link><Link href="/classes" className="block hover:text-primary transition-colors">Classes</Link><Link href="/resources" className="block hover:text-primary transition-colors">Resources</Link></div>
-              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Company</p><Link href="/about" className="block hover:text-primary transition-colors">About Us</Link><Link href="/contact" className="block hover:text-primary transition-colors">Contact</Link></div>
-              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Legal</p><Link href="/privacy" className="block hover:text-primary transition-colors">Privacy Policy</Link><Link href="/terms" className="block hover:text-primary transition-colors">Terms of Use</Link></div>
+              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Platform</p>
+                <Link href="/tutors" className="block hover:text-primary transition-colors">Find Tutors</Link>
+                <Link href="/classes" className="block hover:text-primary transition-colors">Classes</Link>
+                <Link href="/resources" className="block hover:text-primary transition-colors">Resources</Link>
+              </div>
+              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Company</p>
+                <Link href="/about" className="block hover:text-primary transition-colors">About Us</Link>
+                <Link href="/contact" className="block hover:text-primary transition-colors">Contact</Link>
+                <Link href="/support-us" className="block hover:text-accent transition-colors">Support Us ❤️</Link>
+              </div>
+              <div className="space-y-2"><p className="font-semibold text-primary mb-2">Follow Us</p>
+                <a href="https://www.instagram.com/yaaraneilm/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-pink-500 transition-colors"><Instagram className="w-3.5 h-3.5" />Instagram</a>
+                <a href="https://linktr.ee/yaaraneilm" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><span className="text-xs font-bold bg-green-100 text-green-700 px-1 rounded">LT</span>Linktree</a>
+                <Link href="/privacy" className="block hover:text-primary transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="block hover:text-primary transition-colors">Terms of Use</Link>
+              </div>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="text-sm text-muted-foreground">© 2026 Yaaran E Ilm. Free always. For every student in Pakistan.</p>
+            <p className="text-sm font-bold text-primary">Website made by M.Irfan Zaidi</p>
           </div>
         </div>
       </footer>

@@ -10,3 +10,4 @@ export * from "./notifications";
 export * from "./resources";
 export * from "./availability";
 export * from "./setup_config";
+export * from "./site_content";

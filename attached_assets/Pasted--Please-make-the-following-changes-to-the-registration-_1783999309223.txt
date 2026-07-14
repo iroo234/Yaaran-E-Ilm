@@ -1,0 +1,76 @@
+---
+
+> "Please make the following changes to the registration page, admin panel, and website:
+>
+> **Tutor registration - fix the Level dropdown:**
+> - Remove ALL existing options
+> - Add only these options: O Level, O1, O2, O3, A Level, Grade 6, Grade 7, Grade 8
+>
+> **Existing users' phone number system:**
+> - For all existing tutors who registered before this update and don't have a phone number saved, when they try to log in, show a message saying 'Welcome back! We have updated our system. Please add your phone number to reactivate your account'
+> - After they enter their phone number (Pakistani format, starting with 03, exactly 11 digits), their account becomes active again
+> - In the admin panel, show a badge on tutors who have not yet added their phone number
+> - Admin can see all tutor details, including phone numbers, in the admin panel
+>
+> **Student registration - add these new fields:**
+> - Phone number field (Pakistani format starting with 03, exactly 11 digits)
+> - What class/grade are you in? dropdown with options: O Level, O1, O2, O3, A Level, Grade 6, Grade 7, Grade 8
+> - Age field (number input, between 5 and 25)
+>
+> **Team Member registration - add:**
+> - Phone number field (Pakistani format starting with 03, exactly 11 digits)
+>
+> **Admin Panel - add a Content Editor section:**
+> - Add a new tab in the admin panel called 'Edit Website Content'
+> - Inside this tab, show editable sections for the homepage including: Hero title, Hero subtitle, About section text, How it works section, Footer text
+> - Each section has a text box where admin can type new content and click Save
+> - Changes save permanently to the database and update on the live website immediately
+> - No coding required, admin can change any text on the website from this panel
+>
+> **Animations - add these throughout the whole website:**
+> - Smooth fade-in animation when any page loads
+> - Cards slide up smoothly when they appear on screen while scrolling
+> - Buttons have a smooth scale and glow effect when hovered
+> - Page transitions are smooth when navigating between pages
+> - Numbers on the stats section count up smoothly when they appear on screen
+> - Tutor cards have a smooth lift shadow effect on hover
+> - Form inputs have a smooth focus animation when clicked
+> - Loading spinner animation when data is being fetched
+> - Smooth slide in animation for the notification dropdown
+> - All animations should be subtle and professional, not distracting
+>
+> **Fix Tutor Profile Page:**
+> - When a student clicks on a tutor card it should open a full tutor profile page
+> - The tutor profile page should show: profile picture, full name, subject they teach, level (O Level, A Level etc), years of experience, full bio/description, number of students, number of classes, number of videos
+> - Add a big pink 'Chat with Tutor' button on the profile page that opens a direct message with that tutor
+> - Add a 'Book a Session' button as well
+> - If tutor has no profile picture show their initials in a colored circle
+> - Fix the 'Tutor not found' error — it should never show this for approved tutors
+>
+> **Settings Page - add Profile Picture upload:**
+> - In the settings page add an option to upload a profile picture
+> - User can click on their avatar/initials circle and upload an image from their device
+> - Profile picture should update everywhere on the website immediately after upload
+> - Supported formats: JPG, PNG, max size 5MB
+> - Show a circular crop preview before saving
+> - Profile picture should show on tutor cards, tutor profile page, dashboard, and navbar
+>
+> **Add a new 'Support Us' page:**
+> - Add a new tab/page in the navbar called 'Support Us'
+> - Explain our mission: helping provide free education to every Pakistani student
+> - Show contact email: Yaaraneilm@gmail.com
+> - Show WhatsApp only number: +92 325 7192449 with a clickable WhatsApp icon that opens a chat
+> - Add clickable Instagram link: https://www.instagram.com/yaaraneilm/
+> - Add clickable Linktree link: https://linktr.ee/yaaraneilm
+> - Explain that sponsors, companies, and collaborators can reach out to support our mission of free education for everyone
+> - Add a section showing how to send donations with payment details (JazzCash number and bank account details) — these details should be editable from the admin panel
+> - Add the entire Support Us page content as an editable section inside the Admin Panel Content Editor so I can update the email, WhatsApp number, payment details and all text on this page anytime without coding
+>
+> **Footer and Social Links:**
+> - Add Instagram link https://www.instagram.com/yaaraneilm/ to the footer with Instagram icon
+> - Add Linktree link https://linktr.ee/yaaraneilm to the footer with Linktree icon
+> - In the bottom left corner of the website footer write in bold: 'Website made by M.Irfan Zaidi'
+> - These social links should also be editable from the admin panel Content Editor"
+
+--- adddons
+and when some puts there email in  he website it tells them to wait for the admin to approve fix this and if i reject them it tells them sends notifaction to them saying u have been rejected   and the 2 admins option isnt working ? when admin enables the /setup page more admins can join  and also in add contuine with google in sign up and login in pages when they clicj it there gmail acc shows and chat ssytem should work great. make the chat area better for tutors it shows all students and they can start a chat with the students and for studnets it shows alll tutor names show and they can msg the tutors. and find some bugs by ur self and fix them and website should work on all devices

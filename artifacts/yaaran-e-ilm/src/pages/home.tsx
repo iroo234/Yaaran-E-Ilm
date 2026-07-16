@@ -20,6 +20,30 @@ async function apiFetch(path: string, options?: RequestInit) {
 type Review = { id: number; studentName: string; tutorName: string; rating: number; comment?: string; };
 type Tutor = { id: number; userId: number; name: string; subject?: string; };
 
+const FEATURED_TESTIMONIALS = [
+  {
+    id: "t1",
+    name: "Fabiha Munir",
+    role: "O3 Level · Chemistry",
+    stars: 5,
+    text: "My experience has honestly been amazing! Since I'm taught separately, I get full attention, which really helps me understand everything deeply. The tutor is incredibly supportive, cooperative, and explains concepts in such a clear and friendly way. It feels like a very comfortable and positive learning space, and I genuinely enjoy every class. Really grateful for such a great experience! ✨",
+  },
+  {
+    id: "t2",
+    name: "Ibrahim",
+    role: "Grade 6 · Algebra",
+    stars: 5,
+    text: "The class went really well! The tutor was very understanding and explained difficult as well as basic level concepts really well. She made sure to speak in a way that would help the student grasp what she's saying and overall made the student feel very comfortable to ask any question. She was very well prepared and was very open to any feedback. Overall amazing experience — will definitely be continuing! ✨",
+  },
+  {
+    id: "t3",
+    name: "YEI Student",
+    role: "Yaaran E Ilm",
+    stars: 5,
+    text: "Honestly, everything is already really well-managed, and I'm completely satisfied with my learning experience. I don't feel there's anything that needs improvement at the moment. Keep up the great work! ✨",
+  },
+];
+
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
   return (
@@ -258,29 +282,53 @@ export function Home() {
             <p className="text-muted-foreground max-w-md mx-auto">{c("reviews_subtitle", "Real words from real students whose journeys have been shaped by this community.")}</p>
           </div>
 
-          {reviews.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {/* Featured real testimonials — always shown */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {FEATURED_TESTIMONIALS.map((t, i) => (
+              <motion.div key={t.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col">
+                <div className="flex items-start justify-between">
+                  <Quote className="w-8 h-8 text-accent/40 flex-shrink-0" />
+                  <div className="flex gap-0.5 text-yellow-400 text-base">{"★".repeat(t.stars)}</div>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed italic flex-1">"{t.text}"</p>
+                <div className="pt-3 border-t border-border flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center text-primary font-bold font-serif flex-shrink-0">
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-primary text-sm">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Additional DB reviews below featured ones */}
+          {reviews.length > 0 && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {reviews.map((review) => (
                 <motion.div key={review.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                  <div className="flex items-center justify-between">
-                    <Quote className="w-8 h-8 text-accent/40" />
+                  className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+                  <div className="flex items-start justify-between">
+                    <Quote className="w-8 h-8 text-accent/40 flex-shrink-0" />
                     <div className="flex gap-0.5 text-yellow-400">
                       {"★".repeat(Math.round(review.rating))}{"☆".repeat(5 - Math.round(review.rating))}
                     </div>
                   </div>
-                  {review.comment && <p className="text-muted-foreground text-sm leading-relaxed italic">"{review.comment}"</p>}
-                  <div className="pt-2 border-t border-border">
-                    <p className="font-semibold text-primary text-sm">{review.studentName}</p>
-                    <p className="text-xs text-muted-foreground">Review for {review.tutorName}</p>
+                  {review.comment && <p className="text-muted-foreground text-sm leading-relaxed italic flex-1">"{review.comment}"</p>}
+                  <div className="pt-2 border-t border-border flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary font-bold font-serif flex-shrink-0">
+                      {review.studentName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-primary text-sm">{review.studentName}</p>
+                      <p className="text-xs text-muted-foreground">Review for {review.tutorName}</p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 space-y-3 mb-8">
-              <Star className="w-12 h-12 text-muted-foreground/20 mx-auto" />
-              <p className="text-muted-foreground">No reviews yet — be the first to share your experience!</p>
             </div>
           )}
 

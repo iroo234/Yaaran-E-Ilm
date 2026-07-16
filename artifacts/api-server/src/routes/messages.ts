@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, or, and, sql } from "drizzle-orm";
+import { eq, or, and } from "drizzle-orm";
 import { db, messagesTable, usersTable, notificationsTable } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -22,7 +22,7 @@ router.get("/messages/conversations", requireAuth, async (req, res): Promise<voi
   });
 
   const conversations = await Promise.all(Array.from(partnerIds).map(async (partnerId) => {
-    const [partner] = await db.select({ id: usersTable.id, name: usersTable.name, role: usersTable.role }).from(usersTable).where(eq(usersTable.id, partnerId));
+    const [partner] = await db.select({ id: usersTable.id, name: usersTable.name, role: usersTable.role, avatarUrl: usersTable.avatarUrl }).from(usersTable).where(eq(usersTable.id, partnerId));
     const thread = msgs.filter(m => (m.senderId === partnerId || m.receiverId === partnerId));
     const last = thread.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
     const unread = thread.filter(m => m.receiverId === userId && m.isRead === 0).length;
@@ -30,6 +30,7 @@ router.get("/messages/conversations", requireAuth, async (req, res): Promise<voi
       partnerId,
       partnerName: partner?.name ?? "Unknown",
       partnerRole: partner?.role ?? "student",
+      partnerAvatar: partner?.avatarUrl ?? null,
       lastMessage: last?.content ?? "",
       lastAt: last?.createdAt.toISOString() ?? "",
       unread,
@@ -50,7 +51,6 @@ router.get("/messages/:partnerId", requireAuth, async (req, res): Promise<void> 
     )
   );
 
-  // Mark received as read
   await db.update(messagesTable).set({ isRead: 1 }).where(
     and(eq(messagesTable.senderId, partnerId), eq(messagesTable.receiverId, userId), eq(messagesTable.isRead, 0))
   );
@@ -68,9 +68,24 @@ router.post("/messages", requireAuth, async (req, res): Promise<void> => {
   const [msg] = await db.insert(messagesTable).values({ senderId: userId, receiverId, content: content.trim(), isRead: 0 }).returning();
 
   const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  await db.insert(notificationsTable).values({ userId: receiverId, type: "new_message", title: "New Message", body: `${sender?.name ?? "Someone"} sent you a message.`, relatedId: msg.id });
+  await db.insert(notificationsTable).values({ userId: receiverId, type: "new_message", title: "New Message 💬", body: `${sender?.name ?? "Someone"} sent you a message.`, relatedId: msg.id });
 
   res.status(201).json({ ...msg, createdAt: msg.createdAt.toISOString() });
+});
+
+// Delete entire conversation between current user and a partner
+router.delete("/messages/conversation/:partnerId", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req.session as any).userId;
+  const partnerId = parseInt(req.params.partnerId, 10);
+  if (isNaN(partnerId)) { res.status(400).json({ error: "Invalid partnerId" }); return; }
+
+  await db.delete(messagesTable).where(
+    or(
+      and(eq(messagesTable.senderId, userId), eq(messagesTable.receiverId, partnerId)),
+      and(eq(messagesTable.senderId, partnerId), eq(messagesTable.receiverId, userId))
+    )
+  );
+  res.json({ success: true });
 });
 
 export default router;

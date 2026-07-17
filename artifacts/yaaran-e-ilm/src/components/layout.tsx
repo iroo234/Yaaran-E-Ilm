@@ -65,6 +65,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     { href: "/tutors", label: "Tutors", icon: <Users className="w-4 h-4" /> },
                     { href: "/classes", label: "Classes", icon: <GraduationCap className="w-4 h-4" /> },
                     { href: "/resources", label: "Resources", icon: <BookOpen className="w-4 h-4" /> },
+                    { href: "/team", label: "Our Team", icon: <Users className="w-4 h-4" /> },
                     { href: "/support-us", label: "Support Us", icon: <Heart className="w-4 h-4 text-accent fill-accent" /> },
                   ].map(i => <Link key={i.href} href={i.href} className="flex items-center gap-2 text-base font-medium text-primary">{i.icon}{i.label}</Link>)}
                   {user && <Link href="/dashboard" className="flex items-center gap-2 text-base font-medium text-primary"><LayoutDashboard className="w-4 h-4" />Dashboard</Link>}
@@ -91,7 +92,10 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="flex items-center gap-3">
               <img src="/logo.jpeg" alt="Logo" className="h-10 w-10 rounded-full object-cover" />
-              <div><p className="font-serif text-lg font-bold text-primary">Yaaran E Ilm</p><p className="text-xs text-muted-foreground">Friends of Knowledge · یاران علم</p></div>
+              <div>
+                <p className="font-serif text-lg font-bold text-primary">Yaaran E Ilm</p>
+                <p className="text-xs text-muted-foreground">Companions in Knowledge · یاران علم</p>
+              </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
               <div className="space-y-2"><p className="font-semibold text-primary mb-2">Platform</p>
@@ -101,6 +105,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </div>
               <div className="space-y-2"><p className="font-semibold text-primary mb-2">Company</p>
                 <Link href="/about" className="block hover:text-primary transition-colors">About Us</Link>
+                <Link href="/team" className="block hover:text-primary transition-colors">Meet Our Team</Link>
                 <Link href="/contact" className="block hover:text-primary transition-colors">Contact</Link>
                 <Link href="/support-us" className="block hover:text-accent transition-colors">Support Us ❤️</Link>
               </div>

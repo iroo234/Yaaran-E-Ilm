@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Phone } from "lucide-react";
+import { Phone, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -19,6 +19,18 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+function getLoginErrorMessage(error: any): string {
+  if (!error) return "An unexpected error occurred. Please try again.";
+  if (typeof error === "string") return error;
+  if (error.error && typeof error.error === "string") return error.error;
+  if (error.message && typeof error.message === "string") {
+    if (error.message.includes("Invalid email or password")) return "Incorrect email or password. Please check your credentials and try again.";
+    if (error.message.includes("fetch")) return "Could not connect to the server. Please check your connection.";
+    return error.message;
+  }
+  return "Login failed. Please check your email and password.";
+}
+
 export function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -27,6 +39,7 @@ export function Login() {
   const [needsPhone, setNeedsPhone] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
 
@@ -51,10 +64,13 @@ export function Login() {
           setNeedsPhone(true);
           return;
         }
-        toast({ title: "Welcome back!", description: "You have successfully logged in." });
+        toast({ title: "Welcome back!", description: `Signed in as ${res?.name ?? "user"}.` });
         setLocation("/dashboard");
       },
-      onError: (error: any) => toast({ variant: "destructive", title: "Login failed", description: error.error || "Please check your credentials." }),
+      onError: (error: any) => {
+        const msg = getLoginErrorMessage(error);
+        toast({ variant: "destructive", title: "Login failed", description: msg });
+      },
     });
   };
 
@@ -81,16 +97,16 @@ export function Login() {
             <motion.div key="phone" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 text-center space-y-2">
                 <Phone className="w-8 h-8 text-accent mx-auto" />
-                <h2 className="font-serif text-lg font-bold text-primary">Welcome back!</h2>
-                <p className="text-sm text-muted-foreground">We've updated our system. Please add your phone number to reactivate your account.</p>
+                <h2 className="text-lg font-bold text-primary">One last step</h2>
+                <p className="text-sm text-muted-foreground">We've updated our system. Please add your phone number to complete your account setup.</p>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-primary">Phone Number (Pakistani format: 03XXXXXXXXX)</label>
+                <label className="text-sm font-medium text-primary">Phone Number <span className="text-xs text-muted-foreground">(Pakistani format: 03XXXXXXXXX)</span></label>
                 <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="03001234567" className="border-border focus:border-accent transition-all" />
                 {phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
               </div>
               <Button onClick={handlePhoneSubmit} disabled={phoneMutation.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 hover:scale-[1.02] transition-all font-semibold py-5">
-                {phoneMutation.isPending ? "Saving..." : "Activate Account"}
+                {phoneMutation.isPending ? "Saving..." : "Complete Setup"}
               </Button>
             </motion.div>
           ) : (
@@ -105,7 +121,14 @@ export function Login() {
                   )} />
                   <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem><FormLabel>Password</FormLabel>
-                      <FormControl><Input placeholder="••••••••" type="password" className="border-border focus:border-accent transition-all focus:ring-2 focus:ring-accent/20" {...field} /></FormControl>
+                      <FormControl>
+                        <div className="relative">
+                          <Input placeholder="••••••••" type={showPassword ? "text" : "password"} className="border-border focus:border-accent transition-all focus:ring-2 focus:ring-accent/20 pr-10" {...field} />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />

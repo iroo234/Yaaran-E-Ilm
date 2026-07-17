@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, CheckCircle, XCircle, Star, BookOpen, MessageSquare, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -44,13 +45,13 @@ function ReviewModal({ booking, onClose }: { booking: Booking; onClose: () => vo
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4">
-        <h3 className="font-serif text-xl font-bold text-primary">Rate session with {booking.tutorName}</h3>
+        <h3 className="text-xl font-bold text-primary">Rate session with {booking.tutorName}</h3>
         <div className="flex gap-2">
           {[1,2,3,4,5].map(s => (
             <button key={s} onClick={() => setRating(s)} className={`text-3xl transition-transform hover:scale-110 ${s <= rating ? "text-yellow-400" : "text-gray-300"}`}>★</button>
           ))}
         </div>
-        <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience (optional)..." className="w-full border border-border rounded-xl p-3 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-accent/40 bg-background" />
+        <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Share your experience (optional)..." className="w-full border border-border rounded-xl p-3 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-accent/40 bg-background text-foreground" />
         <div className="flex gap-2">
           <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="bg-accent text-accent-foreground hover:bg-accent/90 flex-1">{mutation.isPending ? "Submitting..." : "Submit Review"}</Button>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -111,10 +112,16 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {reviewBooking && <ReviewModal booking={reviewBooking} onClose={() => setReviewBooking(null)} />}
-      <div className="bg-primary text-primary-foreground px-4 py-8">
+
+      {/* Hero header — explicit foreground colors to prevent global h1 color from hiding text */}
+      <div className="bg-primary px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="font-serif text-2xl md:text-3xl font-bold mb-1">Welcome back, {user.name} 👋</h1>
-          <p className="text-primary-foreground/60 text-sm capitalize">{isTutor ? "Tutor Dashboard" : "Student Dashboard"}</p>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold mb-1 !text-primary-foreground">
+              Welcome back, {user.name} 👋
+            </h1>
+            <p className="text-primary-foreground/70 text-sm capitalize">{isTutor ? "Tutor Dashboard" : "Student Dashboard"}</p>
+          </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             {[
               { label: "Pending", value: pending.length, icon: <Clock className="w-4 h-4 text-yellow-300" /> },
@@ -122,10 +129,14 @@ export function Dashboard() {
               { label: "Completed", value: completed.length + history.filter(b=>b.status==="reviewed").length, icon: <Star className="w-4 h-4 text-green-300" /> },
               { label: "Total Sessions", value: bookings.length, icon: <Users className="w-4 h-4 text-accent" /> },
             ].map(s => (
-              <div key={s.label} className="bg-primary-foreground/10 rounded-xl p-3 flex items-center gap-2">
+              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+                className="bg-white/10 rounded-xl p-3 flex items-center gap-2">
                 {s.icon}
-                <div><p className="text-xl font-bold font-serif text-primary-foreground">{s.value}</p><p className="text-xs text-primary-foreground/60">{s.label}</p></div>
-              </div>
+                <div>
+                  <p className="text-xl font-bold font-serif text-white">{s.value}</p>
+                  <p className="text-xs text-white/60">{s.label}</p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -239,9 +250,9 @@ export function Dashboard() {
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <Link href="/messages"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><MessageSquare className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Messages</span></div></Link>
-          <Link href="/resources"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><BookOpen className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Resources</span></div></Link>
-          <Link href="/tutors"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors group"><Users className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Find Tutors</span></div></Link>
+          <Link href="/messages"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors"><MessageSquare className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Messages</span></div></Link>
+          <Link href="/resources"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors"><BookOpen className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Resources</span></div></Link>
+          <Link href="/tutors"><div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:border-accent/40 cursor-pointer transition-colors"><Users className="w-5 h-5 text-accent" /><span className="font-medium text-sm text-primary">Find Tutors</span></div></Link>
         </div>
       </div>
     </div>
